@@ -1,0 +1,26 @@
+#! /bin/sh -f
+#
+# Time-stamp: <Paul Sanschagrin -- Tue Jul 17 09:31:06 EDT 2001>
+# prep_WatCH - extract the coordinates for the water molecules
+#   from a PDB file and prepare for input to WatCH
+# Usage: prep_WatCH <structure ID> <pdb file>
+#
+if [ $# -ne 2 ] ; then
+  echo ""
+  echo "Usage: $0 <structure ID> <pdb file> > <output file>"
+  echo ""
+  exit
+fi
+
+strid=$1
+pdbfn=$2
+dir=DIRECTORY
+if [ ! -f $pdbfn ] ; then
+  echo ""
+  echo "$pdbfn not found"
+  echo ""
+  exit
+fi
+
+# run the approraite perl scripts
+$dir/pdbgetwaters.pl $pdbfn | $dir/pdbdehydrogen.pl - | $dir/pdbxyzid.pl $strid - 

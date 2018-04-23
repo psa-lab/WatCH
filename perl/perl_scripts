@@ -1,0 +1,374 @@
+____FILE_START: check_cluster_contents.pl
+#! /bin/perl
+
+# check_cluster_contents.pl -- do processing of contents of clusters as 
+#    output by cluster program
+# Usage: check_cluster_contents.pl <checks> <cluster file>
+#     where checks are: -d (find clusters with waters from same str)
+#                       -c (give count for number of points from each str in each cluster
+#                       -p <point id> (find cluster with specified point)
+#                       -s <structure id> (find clusters with waters from str)
+
+use Getopt::Std;
+use File::Basename;
+
+# define some subrountines
+sub usage {
+    $this = basename ($0);
+    print "Usage: $this  <check> <cluster file>\n";
+    print "  checks are: -d (find clusters with waters from same structure)\n"
+	 ."              -c (give count for number of cluster points from each str in each cluster)\n"
+         ."              -p <point id> (find cluster with specified cluster point)\n"
+         ."              -s <structure id> (find clusters with waters from a specific structure)\n"
+	 ."  except for -d and -c together, only 1 check may be used\n";
+    exit 1;
+}
+
+sub count_str_dupes {
+    local ($clnum, $density, $x, $y, $z, @points) = @_; 
+    $dupflag = 1;
+    %hash = ();
+    for ($i = 0; $i<@points; $i++) {
+	$hash{substr($points[$i],0,2)}++;
+    }
+    $retstr = sprintf "%-4d %8.2f  %8.3f %8.3f %8.3f -- ", $clnum, $density, $x, $y, $z;
+    $strstr = "";
+    $numdupes = 0;
+    $numstrs = 0;
+    foreach $str (sort keys %hash) {
+	$strstr .= sprintf "%03d-%04d ",$str,$hash{$str};
+	$numstrs ++;
+	$numdupes += $hash{$str};
+	if (($hash{$str} > 1) && ($dupflag)) {
+	    $retstr = "D".$retstr;
+	    $dupflag = 0;
+	}
+    }
+    $numdupes -= $numstrs;
+    $retstr .= sprintf "D%04d %s", $numdupes, $strstr;
+}
+
+sub check_dupe_str {
+    local (@points) = @_;
+    for ($i = 0; $i<@points; $i++) {
+	if (exists $hash{substr($points[$i],0,2)}) {
+	    %hash = ();
+	    return 1;
+	}
+	$hash{substr($points[$i],0,2)}++;
+    }
+    %hash = ();
+    return 0;
+}
+
+sub check_point {
+    local ($seekpoint, @points) = @_;
+    for ($i = 0; $i<@points; $i++) {
+	if ($points[$i] == $seekpoint) {
+	    return 1;
+	}
+    }
+    return 0;
+}
+
+sub check_str {
+    local ($seekstr,@points) = @_;
+    for ($i = 0; $i<@points;$i++) {
+	if (substr($points[$i],0,2) eq $seekstr) {
+	    return 1;
+	}
+    }
+    return 0;
+}
+
+# Parse and check CL args
+if (getopts('cdp:s:') == false) {
+    usage();
+}
+$option = 0;
+if ($opt_d || $opt_c) {
+    $option++;
+}
+if ($opt_p) {
+    $seekpoint = $opt_p;
+    $option++;
+}
+if ($opt_s) {
+    $seekstr = $opt_s;
+    $option++;
+}
+
+if ($option != 1) {
+    print STDERR "Except for -d and -c, only one check may be used at a time\n".
+	"and at least one check must be used.\n";
+    usage();
+}
+
+if (@ARGV != 1) {
+    usage();
+}
+
+$fn = $ARGV[0];
+open (FILE, $fn) or die "Unable to open input file: $fn\n";
+
+# parse input file and do checks
+while (<FILE>) {
+    if ($_ =~ /^\#/) {next} # skip comments
+    chomp($_);
+    ($clnum, $density, $x, $y, $z, $junk, @contents) = split(/\s+/,$_);
+    if ($opt_c) { # count structure duplicity
+	$_ = count_str_dupes($clnum, $density, $x, $y, $z, @contents);
+	if (!$opt_d) {
+	    if (substr($_,0,1) eq "D") {
+		print substr($_,1,length($_)-1)."\n";
+	    } else {
+		print "$_\n";
+	    }
+	}
+    }
+    if ($opt_d) { # find clusters with points from same str
+	if ($opt_c) {
+	    if (substr($_,0,1) eq "D") {
+		print substr($_,1,length($_)-1)."\n";
+	    }
+	}
+	elsif (check_dupe_str(@contents)) {
+	    print "$_\n";
+	}
+    }
+    if ($opt_p) { # find cluster containing a specific point
+	if (check_point($seekpoint,@contents)) {
+	    print "$_\n";
+	}
+    }
+    if ($opt_s) { # find clusters containing points from a specific str
+	if (check_str($seekstr,@contents)) {
+	    print "$_\n";
+	}
+    }
+}
+    
+____FILE_END
+____FILE_START: cluster2pdb.pl
+#! /bin/perl
+#
+# cluster2pdb.pl -- convert a cluster output to a pdbfile of waters with
+#   bvals = cluster density
+# Usage: clsuter2pdb.pl [-c cutoff] <cluster file>
+#
+
+use Getopt::Std;
+use File::Basename;
+ 
+# Define some subrountines
+
+sub usage {
+    $this = basename($0);
+    print "Usage: $this [-c cutoff] <cluster file>\n";
+    exit (1);
+}
+
+# Parse CL Args and usage check
+$cutoff = 0;
+if (getopts('c:') == false) {
+    usage();
+}
+if ($opt_c) {
+    $cutoff = $opt_c;
+}
+if (@ARGV != 1) {
+    usage();
+}
+
+$fn = $ARGV[0];
+open (FILE, $fn) or die "Unable to open cluster file: $fn\n";
+
+# Process cluster data
+while (<FILE>) {
+    if ($_ =~ /^\#/) {next} # skip comments
+    chomp ($_);
+    ($clnum, $density, $x, $y, $z) = split(/\s+/,$_);
+    if ($density >= $cutoff) {
+	printf ("HETATM       O   HOH  %4d    %8.3f%8.3f%8.3f  1.00%6.2f\n",
+		$clnum, $x, $y, $z, $density);
+    }
+}
+
+
+
+
+	
+____FILE_END
+____FILE_START: cluster2percent.pl
+#! /bin/perl
+#
+# cluster2percent.pl -- convert from absolute conservation (i.e. number of 
+#  strs) to a percent
+# Usage: cluster2percent.pl <num strs> <cluster file>
+
+use Getopt::Std;
+use File::Basename;
+ 
+# define some subrountines
+sub usage {
+    $this = basename ($0);
+    print "Usage: $this  <num strs> <cluster file>\n";
+    print "  <num strs> is the number of strs used in the initial clustering\n";
+    exit 1;
+}
+
+# check usage
+if (@ARGV != 2) {usage()};
+
+# assign CL args
+$numstrs = $ARGV[0];
+$fn = $ARGV[1];
+
+open (FILE, $fn) or die "Unable to open cluster file: $fn\n";
+$numstrs > 0 || die "Invalid number of strs ($numstrs). Must be >0.\n";
+
+while (<FILE>) {
+    if ($_ =~ /^\#/) {print $_; next;} # print comments and do no more
+    @arr = split(/\s+/,$_);
+    $cons = ($arr[1]/$numstrs)*100;
+    printf("%-4d %6.2f %s", $arr[0], $cons, substr($_,11,1000));
+}
+____FILE_END
+____FILE_START: pdbdehydrogen.pl
+#! /bin/perl
+#
+# Check that the above points to your perl executable
+# This can be identified by typing: 'which perl'
+###################################################################
+# Time-stamp: <Paul Sanschagrin -- Mon Jul 16 12:01:42 EDT 2001>
+#
+# pdbdehydrogen.pl: Strip hydrogen atoms from a pdbfile
+# Usage: pdbdehydrogen.pl <pdb file>
+#   assumes hydrogen is in the form [ 0-9][HhDd]
+
+use File::Basename;
+use Getopt::Std;
+
+# Define some subroutines
+sub usage {
+    $this = basename ($0);
+    print "Usage: $this  <pdb file>\n";
+    print "  assumes hydrogen is in the form [ 0-9][HhDd]\n";
+    exit 1;
+}
+
+# check usage,parse CL args, and open files
+usage() unless @ARGV == 1;
+$fn = $ARGV[0];
+die "Unable to open pdb file: $fn\n" unless open FILE, $fn;
+
+# Process the file
+while (<FILE>) {
+  $atomname = uc(substr($_,12,2));
+  print $_ unless (($atomname =~ /[ 0-9][HhDd]/) &&
+		   ($_ =~ /^ATOM|atom|HETATM|hetatm/));
+}
+
+# cleanup
+close FILE;
+____FILE_END
+____FILE_START: pdbgetwaters.pl
+#! /bin/perl
+#
+# Check that the above points to your perl executable
+# This can be identified by typing: 'which perl'
+###################################################################
+# Time-stamp: <Paul Sanschagrin -- Mon Jul 16 11:40:39 EDT 2001>
+#
+# pdbgetwater.pl: Extract the water molecules from a PDB file
+# Usage: pdbgetwater.pl <pdb file>
+#    assumes waters are named HOH|H2O|WAT|DOD|D2O (case insensative)
+
+use File::Basename;
+use Getopt::Std;
+
+# Define which residues are waters
+%waters = (HOH => 1,
+	   H20 => 1,
+	   WAT => 1,
+	   DOD => 1,
+	   D20 => 1);
+
+# Define some subroutines
+sub usage {
+    $this = basename ($0);
+    print "Usage: $this  <pdb file>\n";
+    print "  assumes waters are named HOH|H2O|WAT|DOD|D2O (case insensative)\n";
+    exit 1;
+}
+
+# check usage,parse CL args, and open files
+usage() unless @ARGV == 1;
+$fn = $ARGV[0];
+die "Unable to open pdb file: $fn\n" unless open FILE, $fn;
+
+# Process the file
+while (<FILE>) {
+  next unless $_ =~ /^ATOM|HETATM|atom|hetatm/;
+  $resname = uc(substr($_,17,3));
+  print $_ if (exists $waters{$resname});
+}
+
+# cleanup
+close FILE;
+____FILE_END
+____FILE_START: pdbxyzid.pl
+#! /bin/perl
+#
+# Check that the above points to your perl executable
+# This can be identified by typing: 'which perl'
+###################################################################
+# Time-stamp: <Paul Sanschagrin -- Mon Jul 16 12:22:31 EDT 2001>
+#
+# pdbxyzid.pl: Extract the coords from a pdbfile and add an id number
+#              in the form of StructureIDResidueNum (e.g. 010123 
+#              which would be residue 123 from strucure 01)
+#              Designed to be used for water site clustering input
+# Usage: pdbxyzid: <structure id> <pdb file>
+#        output will be list in the form:
+#        StrIDResNum X      Y      Z
+# e.g.   010123      10.123 18.345 -9.234
+
+use File::Basename;
+use Getopt::Std;
+
+# Define some subroutines
+sub usage {
+    $this = basename ($0);
+    print "Usage: $this  <structure ID> <pdb file>\n";
+    print "  <structure ID> should be an integer between 1 and 99\n";
+    print "  output will be list in the form: \n".
+      "      StrIDResNum X      Y      Z\n".
+      "      e.g.   010123      10.123 18.345 -9.23\n";
+    exit 1;
+}
+
+
+# check usage,parse CL args, and open files
+usage() unless @ARGV == 2;
+$strid = $ARGV[0];
+die "Structure ID must be integer between 1 and 99\n" unless
+  (((($strid*1000000) % 1000000) == 0) &&
+   ($strid < 100) &&
+   ($strid > 0));
+$strid = int($strid);
+$fn = $ARGV[1];
+die "Unable to open pdb file: $fn\n" unless open FILE, $fn;
+
+# process file
+while (<FILE>) {
+  next if ($_ =~ /^REMARK/); # skip comments in file
+  $resnum = substr($_,22,4);
+  $x = substr($_,30,8);
+  $y = substr($_,38,8);
+  $z = substr($_,46,8);
+
+  printf("%02d%04d  %8.3f %8.3f %8.3f\n",$strid,$resnum,$x,$y,$z);
+
+}
+____FILE_END

@@ -1,0 +1,331 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+   <TITLE>WatCH Instructions</TITLE>
+<!-- Time-stamp: <Paul Sanschagrin -- Mon Oct 22 09:22:30 EDT 2001> -->
+</HEAD>
+<BODY TEXT="#330000" BGCOLOR="#FFF8DC" LINK="#CC0000" VLINK="#DC143C" ALINK="#DC143C">
+
+<H1 ALIGN=CENTER>Installing and Using <I>WatCH</I></H1>
+<CENTER><I>
+A tool for identifying conserved water sites and analyzing their degree of
+conservation using heirarchical cluster analysis of superimposed related Protein Data Bank
+structures. 
+</I></CENTER>
+
+<CENTER><P><A NAME="TOC"></A><IMG SRC="../../graphics/greenrule.jpg" HEIGHT=5 WIDTH=620></P></CENTER>
+
+<OL>
+  <LI><A HREF="#Intro">Introduction</A></LI>
+  <LI><A HREF="#Install">Getting and Installing <I>WatCH</I></A></LI>
+  <LI><A HREF="#Running">Running <I>WatCH</I></A></LI>
+       <UL>
+	 <LI><A HREF="#Usage">Overview of Usage</A></LI>
+	 <LI><A HREF="#Prep">Preparing Coordinate Files for Use with
+	      <I>WatCH</I></A></LI>
+	 <LI><A HREF="#Output">Results Analysis</A></LI>
+       </UL>
+       
+  <LI><A HREF="#Output">Output Files Produced by
+       <I>WatCH</I></A></LI>
+  <LI><A href="#Demo">Demonstration Files</A></LI>
+  <LI><A HREF="#Det">Algorithmic Details of
+       <I>WatCH</I></A></LI>
+  <LI><A HREF="#Contact">Contact Information</A></LI>
+</OL>
+
+<CENTER><P><IMG SRC="../../graphics/greenrule.jpg" HEIGHT=5
+WIDTH=620></P></CENTER>
+
+<H2><A NAME="Intro"></A>Introduction</H2>
+
+<P><I>WatCH</I> is a tool for the calculation of conserved water sites
+in a series of related structures in Protein Data Bank files.
+<I>WatCH</i> was developed by members of the <A
+HREF="http://www.bch.msu.edu/labs/kuhn/index.html">Protein Structural
+Analysis and Design Laboratory</A> at <A
+HREF="http://www.msu.edu/">Michigan State University</A>. When several
+structures are superimposed, complete linkage cluster analysis
+provides an objective technique for resolving the continuum of
+overlaps between water sites into the set of maximally dense
+microclusters of overlapping water molecules, and also avoids reliance
+on any one structure as a reference.  </P>
+
+<P>For literature references related to <I>WatCH</I>, please see the
+section on <A HREF="#Det">Algorithmic Details</A>.</P>
+
+<P><A HREF="#TOC"><IMG SRC="../../graphics/toc.gif" HSPACE=3 BORDER=0 HEIGHT=32 WIDTH=32 ALIGN=CENTER></A><A HREF="#TOC">Back
+to Table of Contents</A></P>
+
+<CENTER><P><IMG SRC="../../graphics/greenrule.jpg" HEIGHT=5 WIDTH=620></P></CENTER>
+
+<H2><A NAME="Install"></A>Getting and Installing <I>WatCH</I></H2>
+
+<P><B>Installation and Use of <i>WatCH</I> implies agreement with the attached
+<A href="license.txt">License Agreement</A>.</B><BR>
+(Also included in the distribution package.)
+
+<P>System Requirements: <I>WatCH</I> has been compiled with the GNU
+and Sun C compiler packages on Sun Solaris for SPARC and x86 and IRIX
+platforms, but should work with most C compilers. Accessory
+installation, data extraction, and results analysis scripts also
+require perl, but the clustering program itself will run without
+it.</P>
+
+<P>The latest version of <I>WatCH</I>, as well as the most
+recent version of this documentation, can be found at the home page
+for the <A HREF="http://www.bch.msu.edu/labs/kuhn/index.html">Protein
+Structural Analysis and Design Laboratory</A>, <A
+HREF="http://www.bch.msu.edu/">Department of Biochemistry and
+Molecular Biology, Michigan State University</A>. To install
+<I>WatCH</I>, perform the following steps:</P>
+
+<UL>
+<LI>Download <A HREF="WatCH.tar.Z">WatCH.tar.Z</A> (Unix compress format) OR
+<A HREF="WatCH.tar.gz">WatCH.tar.gz</A> (GNU gzip format)</LI>
+
+<LI>Place this file in the directory into which you wish to install the
+software, and enter the following command:
+
+<UL>
+<P><TT>zcat WatCH.tar.Z | tar xvf -</TT> (tar.Z download) <B>OR</B><BR>
+  <TT>gzcat WatCH.tar.gz | tar xvf -</TT> (tar.gz download)<P>
+</UL></LI>
+
+<LI>
+  <P>Check that your perl installation is accessible via
+     <tt>/bin/perl</tt>. This can be done by typing <tt>/bin/perl
+     -v</tt>, which will result in version and copyright information
+     output. If this does not work, edit the <tt>install.pl</tt>
+     script to point to the correct perl executable. This can be
+     identified by typing <tt>which perl</tt> at the command line
+     prompt.</LI>
+
+
+<LI>Run <TT>./install.pl</TT>  <P>(This assumes you have perl. If not,
+     change to the <tt>src</tt> directory, type <tt>make</tt>, and
+     then move <tt>cluster</tt> (the binary program) to your desired
+     installation or bin directory.)</LI>
+
+
+<LI><I>WatCH</I> will now be compiled using the file locations
+     specified.
+     
+<LI>To run <I>WatCH</I>, run the <TT>WatCH</TT> program.
+
+</UL>
+
+     
+<P><A HREF="#TOC"><IMG SRC="../../graphics/toc.gif" HSPACE=3 BORDER=0 HEIGHT=32 WIDTH=32 ALIGN=CENTER></A><A HREF="#TOC">Back
+to Table of Contents</A></P>
+
+<CENTER><P><IMG SRC="../../graphics/greenrule.jpg" HEIGHT=5 WIDTH=620></P></CENTER>
+
+<H2><A NAME="Running"></A>Running <I>WatCH</I></H2>
+
+<H3><A NAME="Usage"></A>Overview of usage</H3>
+
+<P>Before <I>WatCH</I> is run, the input PDB structures must be prepared as described
+below in <A href="#Prep">Preparing Coordinate Files for Use with <I>WatCH</I></A></P>
+
+<P><I>WatCH</I> is run via the command-line interface with the
+following usage:<BR>
+<PRE>
+Usage: cluster &lt;point file&gt; [&lt;clustering threshold&gt;] [&lt;output file&gt;] 
+   (if threshold is not given, 3.60 will be used)
+   (for the output file option to be used, the threshold must be set explicitly)
+   (point file must in form of &lt;integer label&gt; &lt;X&gt; &lt;Y&gt; &lt;Z&gt;)
+</PRE>
+It requires an input file of the following form:<BR>
+<PRE>
+# WaterID X     Y       Z
+10934     9.123 -10.345  11.653
+</pre>
+where:
+<ul>
+  <LI><tt>WaterID</tt>: an unique identifier for each water molecule
+       consisting of an integer structure ID number concatenated with
+       the water molecule's residue number. This file should contain
+       all of the water molecules to be analyzed.</LI>
+  <LI><tt>X</tt>, <tt>Y</tt>, and <tt>Z</tt>: Coordinates of the water
+       molecule.</LI>
+</ul>
+Generation of this file is described below in <a
+href="#Prep">Input File Preparation</a>.</p>
+
+<P>The resultant output file is in the following form:<BR>
+<PRE>
+# Column Number
+#1       2     3       4       5        6
+0        7    4.889 -24.226  27.970  -- 100305 100324 100346 100434 100307 100339 100312 
+1        6   -0.668  -7.894  25.561  -- 100306 100309 100388 100459 100499 100506 
+2        4   18.532 -13.080  32.383  -- 100308 100315 100311 100314 
+</pre>
+where the columns are:
+<ol>
+  <LI>Cluster Number,
+  <LI>Cluster Conservation (i.e. number of water molecules in that cluster),
+  <LI>X coordinate of the cluster,
+  <LI>Y coordinate of the cluster,
+  <LI>Z coordinate of the cluster, and
+  <LI>Cluster contents (i.e. which water molecules are in that cluster).
+</ol>
+  
+<P><A HREF="#TOC"><IMG SRC="../../graphics/toc.gif" HSPACE=3 BORDER=0 HEIGHT=32 WIDTH=32 ALIGN=CENTER></A><A HREF="#TOC">Back
+to Table of Contents</A></P>
+
+<CENTER><P><IMG SRC="../../graphics/greenrule.jpg" HEIGHT=5 WIDTH=620></P></CENTER>
+
+<H3><A NAME="Prep"></A>Preparing Coordinate Files for Use with
+<I>WatCH</I></H3>
+
+<P>Running <I>WatCH</I> requires the extraction of coordinates
+of the water molecules in each of the crystallographic structures
+of interest to a file as described above.
+<OL>
+  <LI>Superimpose each of the structures in question to a common reference
+       frame. This can be done using <i>InsightII</I>'s Transform/Superimpose
+       command or via another superposition method.
+  <LI>Extract the WaterID and coordinate information for water
+       molecules in each of the structures of interest using the
+       <tt>prep_WatCH</tt> script.
+       This must be run for each superimposed
+       structure, giving each structure a unique identifier. This script is
+       run as follows:<BR>
+       <ul>
+	 <LI>First Structure: prep_WatCH &lt;structure ID&gt; &lt;pdb
+	      file&gt; &gt; &lt;output file&gt;</li>
+	 <LI>Subsequent Structures: prep_WatCH &lt;structure ID&gt; &lt;pdb
+	      file&gt; &gt;&gt; &lt;output file&gt;</li>
+       </UL>
+</OL>
+</P>
+
+
+<P><A HREF="#TOC"><IMG SRC="../../graphics/toc.gif" HSPACE=3 BORDER=0 HEIGHT=32 WIDTH=32 ALIGN=CENTER></A><A HREF="#TOC">Back
+to Table of Contents</A></P>
+
+<CENTER><P><IMG SRC="../../graphics/greenrule.jpg" HEIGHT=5 WIDTH=620></P></CENTER>
+
+<H2><A NAME="Output"></A>Analysis of <I>WatCH</I> output</H2>
+
+As described above, the output of <I>WatCH</I> is a file in
+which contains the coordinates for each cluster, calculated as the
+mean of the coordinates of each of the cluster's member water
+molecules, and the cluster contents, i.e. the identifiers for the
+water molecules which are a member of that cluster. There are 3
+additional perl scripts that may be of use for analysis of the
+results.
+<UL>
+  <LI><tt>check_cluster_contents.pl &lt;check&gt; &lt;cluster output file&gt;</TT>:
+       <PRE>
+Usage: check_cluster_contents.pl  &lt;check&gt; &lt;cluster file&gt;
+  checks are: -d (find clusters with waters from same structure)
+              -c (give count for number of cluster points from each str in each cluster)
+              -p &lt;point id&gt; (find cluster with specified cluster point)
+              -s &lt;structure id&gt; (find clusters with waters from a specific structure)
+  except for -d and -c together, only 1 check may be used
+       </PRE>
+       </LI>
+  <LI><tt>cluster2pdb.pl</tt>: Convert the cluster output file to a
+       PDB formatted file, containing water molecules representing
+       each cluster centroid. The B-value column is used to hold the
+       degree of conservation for each cluster.</LI>
+  <LI><tt>cluster2percent.pl</tt>: Convert the cluster output file
+       from one with absolute degrees of conservation, e.g. the
+       cluster is conserved in 4 structures (of the e.g. 8), to one
+       with relative conservation, e.g. the cluster is conserved in
+       50% of the structures. This script, followed by
+       <tt>cluster2pdb.pl</tt>, can be used to achieve a PDB formatted
+       file of the cluster cetntroids with the B-value column
+       containing percentage conservation.</LI> </UL>
+
+An additional file is provided, an <i>InsightII</i> (<a
+href="http://www.accelrys.com/insight/index.html">Accelrys, Inc</a>)
+spectrum, which can be used to facilitate coloring of the cluster
+output by degree of conservation, after using
+<tt>cluster2percent.pl</tt> and <tt>cluster2pdb.pl</tt>. This file is
+<tt>misc/cluster_per.spect</tt> and can be read using the
+<i>InsightII</I> <tt>Spectrum/Get</tt> command. The spectrum is
+colored with dark blue as 0% conservation, purplish blue as 50%
+conservation, purplish red as just over 50% conservation, and dark red
+as 100% conservation.<P>
+<img src="cluster_per.spect.jpg" alt="Cluster Conservation Spectrum">
+
+<P><A HREF="#TOC"><IMG SRC="../../graphics/toc.gif" HSPACE=3 BORDER=0 HEIGHT=32 WIDTH=32 ALIGN=CENTER></A><A HREF="#TOC">Back
+to Table of Contents</A></P>
+
+<H2 ALIGN=CENTER><IMG SRC="../../graphics/greenrule.jpg" HEIGHT=5 WIDTH=620></H2>
+
+<H2><A NAME="Demo"></A>Demonstration Files</H2>
+
+Included in the <tt>demo</tt> directory are a series of files which
+can be used as a demonstration of <i>WatCH</I>. This demo uses
+three thrombin structures, PDB codes 1hai, 1hah, and 1vr1.
+<OL>
+  <LI>Superimpose 1hah and 1vr1 onto 1hai using the catalytic triad
+       residues (His H57, Asp H102, &amp; Ser H195). This gives the
+       following files: <tt>1hai.pdb</tt> (untransformed as it was
+       used as the base for superposition),
+       <tt>1hah.transformed.pdb</tt>, and
+       <tt>1vr1.transformed.pdb</tt>.</LI>
+  <LI>Extract the water molecule data from each file:<br>
+       <tt>../bin/prep_WatCH 10 1hai.pdb &gt; 1hai.wats</tt><br>
+       <tt>../bin/prep_WatCH 20 1hah.transformed.pdb &gt; 1hah.wats</tt><br>
+       <tt>../bin/prep_WatCH 30 1vr1.transformed.pdb &gt; 1vr1.wats</tt><br></lI>
+  <LI>Cat the files together into a single input file:<br>
+       <tt>cat 1hai.wats 1hah.wats 1vr1.wats &gt; all.wats</tt></li>
+  <LI>Run the clustering program:<br>
+       <tt>../bin/cluster all.wats 3.6 all.clusters</tt></li>
+  <LI>Transform from absolute to relative conservation:<br>
+       <tt>../bin/cluster2percent.pl 3 all.clusters &gt; all.clusters.percent</tt></li>
+  <LI>Transform the cluster files into PDB files for visualization
+       with <I>InsightII</I>, <I>RasMol</I>, or another molecular
+       visualization program:<BR>
+       <tt>../bin/clusters2pdb.pl all.clusters &gt; all.clusters.pdb</tt><br>
+       <tt>../bin/clusters2pdb.pl all.clusters.percent &gt; all.clusters.percent.pdb</tt><br></LI>
+  <LI>Determine which clusters have water molecules from the same structure:<br>
+       <tt>../bin/check_cluster_contents.pl -d all.clusters &gt; all.clusters.samestr</tt></LI>
+  <LI>Count the number of water molecules from each structure in each cluster:<br>
+       <tt>../bin/check_cluster_contents.pl -c all.clusters &gt; all.clusters.strcount</tt></LI>
+  <LI>Identify the cluster which contains water molecule number 431 from 1hai (structure ID 10; water ID 100431):<br>
+       <tt>../bin/check_cluster_contents.pl -p 100431 all.clusters &gt; all.clusters.point100431</tt></li>
+  <LI>Identify clusters which contain water molecules from 1vr1 (structure ID 30):<BR>
+       <tt>../bin/check_cluster_contents.pl -s 30 all.clusters &gt; all.clusters.str30</tt></LI>
+</OL>
+
+<P><A HREF="#TOC"><IMG SRC="../../graphics/toc.gif" HSPACE=3 BORDER=0
+HEIGHT=32 WIDTH=32 ALIGN=CENTER></A>
+<A HREF="#TOC">Back to Table of Contents</A></P>
+
+<H2 ALIGN=CENTER><IMG SRC="../../graphics/greenrule.jpg" HEIGHT=5 WIDTH=620></H2>
+
+<H2><A NAME="Det"></A>Algorithmic Details of <I>WatCH</I></H2>
+
+<P><I>WatCH</I> uses complete-linkage hierarchical cluster
+analysis to calculate clusters of bound water molecules. Details of
+this algorithm and its application to thrombin and trypsin can be
+found in the following reference:</P>
+P.&nbsp;C.&nbsp;Sanschagrin and L.&nbsp;A.&nbsp;Kuhn<BR> 
+<A HREF="../../abstracts/protsci98.html">
+<STRONG>Cluster Analysis of Consensus Water Sites in Thrombin
+and Trypsin Shows Conservation between Serine Proteases and 
+Contributions to Ligand Specificity</STRONG></A><BR>
+Prot.&nbsp;Sci., Vol.&nbsp;7, No.&nbsp;10, October 1998, pp 2054-2064.
+
+<P><A href="http://www.ncbi.nlm.nih.gov:80/entrez/query.fcgi?cmd=Retrieve&db=PubMed&list_uids=9792092&dopt=Abstract">PubMed Entry</A>
+
+<P><A HREF="#TOC"><IMG SRC="../../graphics/toc.gif" HSPACE=3 BORDER=0 HEIGHT=32 WIDTH=32 ALIGN=CENTER></A><A HREF="#TOC">Back
+to Table of Contents</A></P>
+
+<CENTER><P><IMG SRC="../../graphics/greenrule.jpg" HEIGHT=5 WIDTH=620></P></CENTER>
+
+<H2><A NAME="Contact"></A>Contact Information</H2>
+
+<P>Inquiries, bug reports, etc. should be directed to Dr. Leslie Kuhn at
+the following email address:</P>
+
+<ADDRESS><A HREF="mailto:kuhn@agua.bch.msu.edu">kuhn@agua.bch.msu.edu</A></ADDRESS>
+
+</BODY>
+</HTML>
