@@ -8,7 +8,7 @@ WatCH is a tool for the calculation of conserved water sites in a series of rela
 
 Relevant publications related to WatCH include the following:
 
-- P. C. Sanschagrin and L. A. Kuhn (1998) Cluster Analysis of Consensus Water Sites in Thrombin and Trypsin Shows Conservation Between Serine Proteases and Contributions to Ligand Specificity, Protein Science, 7, 2054-2064. [Link to PDF](http://www.kuhnlab.bmb.msu.edu/publication_papers/pdf/kuhn1998.pdf)
+- P. C. Sanschagrin and L. A. Kuhn (1998) Cluster Analysis of Consensus Water Sites in Thrombin and Trypsin Shows Conservation Between Serine Proteases and Contributions to Ligand Specificity, Protein Science, 7, 2054-2064. ([Link to PDF](http://www.kuhnlab.bmb.msu.edu/publication_papers/pdf/kuhn1998.pdf))
 
 
 
@@ -183,7 +183,7 @@ Identify clusters which contain water molecules from 1vr1 (structure ID 30):
 
 WatCH uses complete-linkage hierarchical cluster analysis to calculate clusters of bound water molecules. Details of this algorithm and its application to thrombin and trypsin can be found in the following reference:
 
-- P. C. Sanschagrin and L. A. Kuhn (1998), "Cluster Analysis of Consensus Water Sites in Thrombin and Trypsin Shows Conservation between Serine Proteases and Contributions to Ligand Specificity" [Link to PDF](http://www.kuhnlab.bmb.msu.edu/publication_papers/pdf/kuhn1998.pdf) Prot. Sci., Vol. 7, No. 10, October 1998, pp 2054-2064.
+- P. C. Sanschagrin and L. A. Kuhn (1998), "Cluster Analysis of Consensus Water Sites in Thrombin and Trypsin Shows Conservation between Serine Proteases and Contributions to Ligand Specificity" ([Link to PDF](http://www.kuhnlab.bmb.msu.edu/publication_papers/pdf/kuhn1998.pdf) Prot. Sci., Vol. 7, No. 10, October 1998, pp 2054-2064.)
 
 
 ## More Information
